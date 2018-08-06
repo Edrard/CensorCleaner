@@ -1,0 +1,16 @@
+<?php
+  
+namespace CensorCleaner\Loader;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner
+* 
+*/
+
+interface IntConfigWorker
+{
+    function readConfig($file_name);
+    function readAllConfigs();
+    function writeConfig(array $config,$file_name);
+}

@@ -1,0 +1,27 @@
+{
+   "state":{
+    "checker":"on",
+    "filter":"on"
+   },
+   "getters":{
+      "mysql":"GetMysql"
+   },
+   "cens_class":"CensMysql",
+   "ip_ban_class":"IpBanMysql",
+   "link_ban_class":"LinkBanMysql",
+   "moron_ban_class":"MoronBanMysql",
+   "you_ban_class":"YouBanMysql",
+   "list_of_exclude":{
+      "\\Loader\\GetBBCodes":"",
+      "\\Loader\\GetBaseBBCodes":""
+   },
+   "strip_tags":"1",
+   "log_path":"clean",
+   "tmp_file_path":"clean",
+   "lang":"RuPack",
+   "cens":"[цензура]",
+   "cache_types":{
+      "class":"CacheXCache",
+      "path":""
+   }
+}

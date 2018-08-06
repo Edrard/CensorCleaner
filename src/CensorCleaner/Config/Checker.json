@@ -1,0 +1,21 @@
+{
+   "ChQuility":{
+    "phpbb_intq":{
+      "ChForIpBan":"1", 
+      "ChForLimitWords":"1",
+      "ChForLinkBan":"6",
+      "ChForMoronBan":"6",
+      "ChForYoutubeBan":"6", 
+      "ChForSameWord":"1",
+      "ChForLimitCaps":"1",
+      "ChForLimitLines":"1",
+      "ChForSameLatter":"1",
+      "ChForLimitSpecial":"1",
+      "ChForLimitBlank":"1",
+      "ChForBanCurl":"6"
+    },
+    "phpbb_intm":{
+      "ChForCensorMin":"1"
+    }
+   }
+}
