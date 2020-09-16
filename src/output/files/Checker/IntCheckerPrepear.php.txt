@@ -1,0 +1,24 @@
+<?php
+
+namespace CensorCleaner\Checker;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner\Checker
+* 
+*/
+
+Interface IntCheckerPrepear
+{
+    public function countLength();
+    public function countWords($per);
+    public function countUpperCase($upper_case_preg);
+    public function countSymbols($only_symb_preg);
+    public function countNumbers();
+    public function countPerLatter();
+    public function countPerWord();    
+    public function countCensor($pregs, $in_latter);
+    public function countCensorInLatters(CensorCleaner\Config $config);
+    public function countLines();
+    public function unsetAll();
+}

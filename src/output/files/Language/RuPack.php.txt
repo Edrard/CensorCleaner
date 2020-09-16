@@ -1,0 +1,77 @@
+<?php
+
+namespace CensorCleaner\Language;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner\AbstractLanguage
+* @method array latterChange()
+* @method string excludePreg()
+*/
+
+Class RuPack implements IntLanguage
+{
+    private $sym = '+|+';
+
+    public function exclude(){
+        return array('ебаланс' => '#'.$this->sym.'анс#ui',
+            'е баланс' => '#'.$this->sym.'анс#ui',
+            'команда' => '#ко'.$this->sym.'#ui',
+            'залипать' => '#зал'.$this->sym.'#ui',
+            'употреблять' => '#употре'.$this->sym.'#ui'
+        );
+    }
+    /**
+    * Language latter alternatives
+    * @return array
+    */
+    public function latterChange()
+    {
+        return array( 
+            'о' => '[0,o,о]', 
+            'х' => '[х,x,h]',
+            'й' => '[й,y]',
+            'у' => '[y,у,u]',
+            'л' => '((Jl)|l|л)', 
+            'р' => '[p,р]', 
+            'а' => '[a,а,@]', 
+            'е' => '[e,е,ё]',
+            'и' => '[и,i,!,u]',
+            'д' => '[d,д]',
+            'с' => '[с,s,c]',
+            'ы' => '((!Ь)|ы|(Ы)|(bi))',
+            'з' => '[з,z,3]',
+            'б' => '[b,б]',
+            'к' => '[k,к]',
+            'm' => '[m,м]',
+            'd' => '[d,д]',
+            'ч' => '[4,ч]',
+        );
+    }
+    /**
+    * Regexp language + roman latters and numbers
+    * @return string 
+    */
+    public function excludePreg(){
+        return '0-9A-Za-zА-Яа-яЁё';
+    }
+    public function upperCasePreg(){
+        return 'A-ZА-ЯЁ';
+    }
+    public function excludeList($cens){
+        $cens = preg_quote($cens, '/');
+        $new = array();
+        foreach($this->exclude() as $text => $val){
+            $new[$text] = preg_replace("/\+\|\+/iu", $cens, $val);
+        }
+        return $new; 
+    }
+    public function excludeFilter(){
+        $change = '['.$this->excludePreg().']';
+        $new = array();
+        foreach($this->exclude() as $text => $val){
+            $new[$text] = preg_replace("/\+\|\+/iu", $change, $val);
+        }
+        return $new;  
+    }
+}

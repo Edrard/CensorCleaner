@@ -1,0 +1,316 @@
+<?php
+
+namespace CensorCleaner;
+
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use CensorCleaner\Cache;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner
+*/
+
+Class CleanTalk 
+{
+    /**
+    * Config Store var
+    * 
+    * @var Config
+    */
+    static $config;
+    /**
+    * Cache store var
+    * 
+    * @var mixed
+    */
+    static $cache;
+    /**
+    * Loging Class
+    */
+    static $log;
+    /**
+    *  Checker Class
+    * 
+    *  $var object
+    */
+    private static $checker;
+    /**
+    * Getting Data class
+    * 
+    * @var object implements IntGetter
+    */
+    static $getter;
+    /**
+    * Json Config reader
+    * 
+    * @param mixed $json_config
+    */
+    static $file_config; 
+    function __construct($log_level=Logger::WARNING, $config_types = array('main_class' => 'Loader\\FileConfig', 'class' => 'Loader\\JsonFile', 'path' => 'Config') ){
+
+
+        try {
+            $class = __NAMESPACE__.'\\'.$config_types['class'];
+            $main_class = __NAMESPACE__.'\\'.$config_types['main_class'];
+            /** Setting Config directory **/
+            $dir = dirname(__FILE__).'/'.$config_types['path'];
+            /** Config Reader Class **/
+            self::$file_config = new $main_class(new $class($dir));
+            /** Checking Config reader Class **/
+            if(!self::$file_config instanceof Loader\IntConfigWorker){
+                throw new \Exception('Wrong Interface for Config Class');
+            }
+            /** Reading Config **/
+            $this->readCleanTalkConfig();
+
+            /*Starting Monolog*/     
+            $log = new Logger('clean');
+            $log->pushHandler(new StreamHandler($this->log_path.'your.log', $log_level ));
+            /* Log Initialization */
+            $this->setLogs($log);
+            self::$log->debug('Monolog Setted');
+
+            self::$checker = new Checker\Checker();
+            /** Setting Connections **/
+            foreach($this->getters as $key => $getter){
+                $class = __NAMESPACE__.'\\'.$getter;
+                self::$getter[$key] = new $class();  
+                /** Interface Checcking **/
+                if(!self::$getter[$key] instanceof IntGetterSetter){
+                    throw new \Exception('Wrong Interface for '.$key);
+                }
+            }
+            /* Cache Initialization */
+            $this->setCache($this->cache_types);
+            self::$log->debug($this->cache_types['class'].' cache setted');  
+        } catch( \Exception $e){
+            self::$log->err($e->getMessage());
+            echo $e->getMessage(); die;   
+        }
+
+    } 
+    /**
+    * Reading main CleanTalk Config
+    *  
+    */
+    private function readCleanTalkConfig(){
+        if(!$config = self::$file_config->readConfig('CleanTalk.json')){
+            throw new \Exception('No Main Config');    
+        }
+        foreach($config as $key => $val){
+            $this->$key = $val;    
+        }  
+    }
+    /**
+    * Preset function, $cens need to build exclude combination and can be change on init 
+    * 
+    *  $msg - Message to check
+    *  $user_lvl - User Leve
+    *  $cens = word of what we changing rudes
+    *  $no_action - not setting Cookie
+    *  $cache_types - cache parametrs
+    * 
+    * @param string $msg
+    * @param numeric $user_lvl
+    * @param string $cens
+    * @param boolean $no_action
+    * @param array $cache_types
+    */
+    function presetConfig($msg,$user_lvl,$damain,$no_cookie = false){
+        try {
+            /* Config Initialization */
+            self::$config = Config::getInstance();
+            /** Setting Domain **/
+            self::$config->domain = $damain;
+            self::$log->debug('Domain - '. self::$config->domain);
+            /** Main cens replacer **/
+            self::$config->cens = $this->cens;
+            self::$log->debug('Cens replace - '.$this->cens);
+            /** Setting Message **/
+            self::$config->msg = $msg;
+            self::$log->debug('Cens message - '.$msg);
+            /** Lang Init **/ 
+            self::$config->setupLangs($this->lang);
+            self::$log->debug('Langs - '.$this->lang);
+            /** User Level **/
+            self::$config->config['user_lvl'] = $user_lvl;
+            self::$log->debug('User Level - '.$user_lvl);
+            /** Cookie use **/
+            self::$config->config['no_action'] = $no_cookie;
+            self::$log->debug('No action state - '.$no_cookie);
+            /** Censer list Init **/
+            self::$config->setupList($this->cens_class);
+        } catch( \Exception $e){
+            self::$log->err($e->getMessage());
+            echo $e->getMessage(); die;   
+        }
+    }
+    /**
+    * Read Userban Config File
+    * 
+    * @param string $file - Filename 
+    */
+    private function readUserBanConfig($file = 'UserBan.json'){
+        if(!$config = self::$file_config->readConfig($file)){
+            throw new \Exception('No Userban Config File');    
+        }
+        return $config; 
+    }
+    /**
+    * put your comment there...
+    * 
+    * @param mixed $file - Filename
+    */
+    private function readCheckerConfig($file = 'Checker.json'){
+        if(!$config = self::$file_config->readConfig($file)){
+            throw new \Exception('No Checker Config File');    
+        }
+        return $config; 
+    }
+    /**
+    * Run Message check
+    *  
+    */
+    public function checkMessage(){
+        if(self::$config->msg){
+            try {
+                self::$checker->getPrepea(
+                    self::$config, 
+                    new Checker\CheckerPrepear(self::$config->msg), 
+                    new GetContentCurl(),
+                    new Checker\BanUser(
+                        new Loader\FileTmpBanUsers( 
+                            new Loader\JsonFile('')
+                        ),
+                        new Cookie(
+                            self::$config->domain,
+                            self::$config->config['no_action']
+                        ),
+                        GetUserIp::getIp(),
+                        /** UserBan Config Read **/
+                        $this->readUserBanConfig(),
+                        self::$config->config['user_lvl'] 
+                    ),
+                    $this->readCheckerConfig()
+                );
+                return self::$checker->run();
+            } catch( \Exception $e){
+                self::$log->err($e->getMessage());
+                echo $e->getMessage(); die;   
+            }           
+        }
+        return 'EMPTY_MSG';    
+    }
+    /**
+    * Setting Cache Class, to File cache possible to set path
+    * 
+    * @param mixed $cache
+    */
+    private function setCache($cache_types){
+        if(!isset($cache_types['class'])){
+            throw new \Exception('No cache class setted');    
+        }
+        $in_class = __NAMESPACE__.'\\Cache\\'.$cache_types['class'];
+        self::$cache = new $in_class($cache_types['path']);
+        /* Throw exception if wrong Interface */
+        if(!self::$cache instanceof Cache\IntCache){  
+            throw new \Exception('Wrong Cache used');    
+        }
+    }
+    /**
+    * Set Logger
+    * 
+    * @param mixed $log
+    */
+    private function setLogs($log){
+        self::$log = $log;
+    }
+
+    /**
+    * Change Message
+    * 
+    * @param mixed $msg
+    */
+    public function changeMessage($msg){
+        self::$config->msg = $msg;    
+    } 
+    /**
+    * Change User Level
+    * 
+    * @param mixed $user_lvl
+    */
+    public function changeUserLevel($user_lvl){
+        self::$config->config['user_lvl'] = $user_lvl; 
+    }
+    /**
+    * Change noAction
+    * 
+    * @param mixed $no_action
+    */
+    public function noAction($no_action){
+        self::$config->config['no_action'] = $no_action; 
+    }
+    /**
+    * change Language pack
+    * 
+    * @param mixed $langs
+    * 
+    */
+    public function changeLangs($lang){
+        self::$config->setupLangs($lang);  
+    }
+    /**
+    * Presset All Bans
+    * 
+    */
+    public function pressetAllBans(){
+        self::$config->presetBans($this->ip_ban_class, 'ip_ban');
+        self::$config->presetBans($this->link_ban_class, 'link_ban');
+        self::$config->presetBans($this->moron_ban_class, 'moron_ban');
+        self::$config->presetBans($this->you_ban_class, 'you_ban');
+    }
+    /**
+    * Set External Ip Bans
+    *   
+    * @param mixed $ip_ban
+    */
+    public function setIpBan($ip_ban){
+        self::$config->presetBans($this->ip_ban_class, 'ip_ban', $ip_ban);
+    }
+    /**
+    * Set External Links Bans
+    *   
+    * @param mixed $ip_ban
+    */
+    public function setLinkBan($link_ban){
+        self::$config->presetBans($this->link_ban_class, 'link_ban', $link_ban);
+    }
+    /**
+    * Set External Moron Bans
+    *   
+    * @param mixed $ip_ban
+    */
+    public function setMoronBan($moron_ban){
+        self::$config->presetBans($this->moron_ban_class, 'moron_ban', $moron_ban);
+    }
+    /**
+    * Set External Youtube Bans
+    *   
+    * @param mixed $ip_ban
+    */
+    public function setYouBan($you_ban){
+        self::$config->presetBans($this->you_ban_class, 'you_ban', $you_ban);
+    }
+    /**
+    * Set External Censor List
+    *   
+    * @param mixed $ip_ban
+    */
+    public function setCens($cens_list){
+        self::$config->setupList($this->cens_class,$cens_list);
+    }
+}
+/**
+* EMPTY_MSG - Empty message
+*/

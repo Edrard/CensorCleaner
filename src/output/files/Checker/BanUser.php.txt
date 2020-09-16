@@ -1,0 +1,85 @@
+<?php
+
+namespace CensorCleaner\Checker;
+
+use CensorCleaner\Loader;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner\Checker
+* 
+*/
+
+Class BanUser implements IntBanUser
+{
+    /**
+    * User state
+    * 
+    * @var boolean
+    */
+    public $cookie_name = array('phpbb_intq' => 0, 'phpbb_intm' => 0);
+    public $user_banned = FALSE;
+    public $config;
+    private $cookie;
+    private $tmp_list;
+    private $ip;
+    private $user_level;
+    private $file = array();
+
+    function __construct(Loader\IntTmpBanWorker $tmp_list, \CensorCleaner\AbstractCookie $cookie , $ip, array $config, $user_level){
+        $this->ip          = $ip;
+        $this->cookie      = $cookie;    
+        $this->tmp_list    = $tmp_list;
+        $this->checkUserStatus();
+        $this->user_level  = $user_level;
+        $this->config      = $config;
+        if($file = $this->tmp_list->readTmpBanUsers()){
+            $this->file = $file;    
+        }
+        //print_r($config); die;
+    }
+    function checkUserStatus(){
+        $this->user_banned = FALSE;
+        if($this->ip !== FALSE){
+            if(!empty($file)){
+                if($file[$this->ip]['time'] + $file[$this->ip]['ttl'] < time()){
+                    $this->user_banned = TRUE;    
+                }
+            }
+        }
+        if($this->user_banned === FALSE){ 
+            $this->setUserStatus($this->getCookieBan());
+        }
+    }
+    function getUserStatus(){
+        return $this->user_banned;    
+    } //cookie_time_phpbb_intm
+    function addCookieWarning($name){
+        $data = $this->cookie_name[$name] + 1;
+        $this->cookie->setUserCookie($name,$data,$this->config[$this->user_level]['cookie_time_'.$name]); 
+        $this->checkUserStatus();
+    }
+    function setUserStatus($time){
+        if($this->user_banned !== FALSE && $time != 0){
+            $this->file[$this->ip]['ttl'] = $time;
+            $this->file[$this->ip]['time'] = time();
+            $this->saveBan();
+        }  
+    }
+    private function saveBan(){
+        $this->tmp_list->writeTmpBanUsers($this->file);
+    }
+    private function getCookieBan(){
+        $time = 0;
+        foreach($this->cookie_name as $type => &$count){
+            $count  = $this->cookie->getUserCookie($type);   
+            if($this->config[$this->user_level][$type] != 'U'){
+                if($count > $this->config[$this->user_level][$type]){ 
+                    $time = max($time, $this->config[$this->user_level][$type]);
+                    $this->user_banned = TRUE;
+                } 
+            }
+        }
+        return $time;
+    }
+}

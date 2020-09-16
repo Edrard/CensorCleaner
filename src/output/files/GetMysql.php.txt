@@ -1,0 +1,49 @@
+<?php
+
+namespace CensorCleaner;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner
+* 
+*/
+
+Class GetMysql implements IntGetterSetter
+{
+    private $connection;
+    function __construct(
+        $config = array(
+            'driver'    => 'mysql', // Db driver
+            'host'      => 'localhost',
+            'database'  => 'wot',
+            'username'  => 'edrard',
+            'password'  => 'Kndr:34.',
+            'charset'   => 'utf8', // Optional
+            'options'   => array( // PDO constructor options, optional
+                \PDO::ATTR_TIMEOUT => 120,
+                \PDO::ATTR_EMULATE_PREPARES => false,
+            ),
+        )
+    ){
+
+        $connection = new \Pixie\Connection('mysql', $config);
+        $this->connection =  new \Pixie\QueryBuilder\QueryBuilderHandler($connection);
+    }
+
+    function get_data($config){
+        $query = $this->connection->query($config['query']);        
+        return $query->setFetchMode(\PDO::FETCH_ASSOC)->get();
+    }
+    function change_data($config){
+        $query = $this->connection->query($config['query']);        
+        return $query->get();      
+    }
+    function insert_data($config,$more = FALSE){
+        $query = $this->connection->query($config['query']);        
+        return $query->get();
+    }
+    function delete_data($config){
+        $query = $this->connection->query($config['query']);        
+        return $query->get();
+    }
+}

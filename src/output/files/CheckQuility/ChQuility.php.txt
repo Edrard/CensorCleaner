@@ -1,0 +1,32 @@
+<?php
+
+namespace CensorCleaner\CheckQuility;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner\CheckQuility
+* 
+* Chain of responsibility Pattern used
+* 
+*/
+
+class ChQuility implements IntChQuility
+{
+    /**
+     * @var IntChQuility[]
+     */
+    protected $handlers = [];
+    public function checkQuility($message)
+    {
+        foreach ($this->handlers as $handler) {
+            if($return = $handler->checkQuility($message)){ 
+                return $return;
+            }
+        }
+    }
+    public function addHandler(IntChQuility $handler)
+    {
+        $this->handlers[] = $handler;
+    }
+}
+

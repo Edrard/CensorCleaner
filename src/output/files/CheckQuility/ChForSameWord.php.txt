@@ -1,0 +1,36 @@
+<?php
+  
+namespace CensorCleaner\CheckQuility;
+
+use CensorCleaner\Checker;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner\CheckQuility
+* 
+*/
+  
+  
+class ChForSameWord implements IntChQuility
+{
+    private $check_prepear;
+    public $weight = '1';
+    public $config;
+    function __construct(\CensorCleaner\Config $config, Checker\IntCheckerPrepear $check_prepear, $weight){ 
+        $check_prepear->countLength(); 
+        print_r($check_prepear);
+        $this->check_prepear = $check_prepear;
+        $this->weight        = $weight;
+        $this->config        = $config;
+    }
+    /**
+     * @param mixed $message
+     */
+    public function checkQuility($usr_level)
+    {
+        if ($usr_level <= $this->weight) {
+            echo __CLASS__ . "process this message";
+        }
+    }
+}  
+

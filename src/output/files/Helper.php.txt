@@ -1,0 +1,138 @@
+<?php
+
+namespace CensorCleaner;
+
+Class Helper { 
+    /**
+    * Resorting array by parametr
+    * 
+    * @param mixed $array
+    * @param mixed $param
+    */
+    static function array_resort($array,$param){
+        $new = array();
+        if(is_array($array)){
+            foreach($array as $val){
+                $new[$val[$param]] = $val;
+            }
+        }
+        return $new;    
+    }
+    /**
+    * Create new array with $key as key and $param as param
+    * $param can be Empty, and if $key - empty, then numbers from 0 will used
+    * 
+    * @param mixed $array
+    * @param mixed $key
+    * @param mixed $param
+    */
+    static function array_2d($array,$key,$param){
+        $new = array();       
+        if(is_array($array)){
+            $i = 0;
+            foreach($array as $val){
+                if((isset($val[$key]) || !$key) && (isset($val[$param]) || !$param)){
+                    $new[$key ? $val[$key] : $i] = $param ? $val[$param] : '';
+                    $i++;
+                }
+            }
+        }
+        return $new;
+    }
+    /**
+    * Writing file
+    * 
+    * @param mixed $path
+    * @param mixed $data
+    * @param mixed $mode
+    */
+    static function write_file($path, $data, $mode = 'wb')
+    {
+        if ( ! $fp = @fopen($path, $mode))
+        {
+            return FALSE;
+        }
+
+        flock($fp, LOCK_EX);
+        fwrite($fp, $data);
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        return TRUE;
+    }
+    /**
+    * Reading file
+    * 
+    * @param mixed $file
+    */
+    static function read_file($file)
+    {
+        if ( ! file_exists($file))
+        {
+            return FALSE;
+        }
+
+        if (function_exists('file_get_contents'))
+        {
+            return file_get_contents($file);
+        }
+
+        if ( ! $fp = @fopen($file, 'rb'))
+        {
+            return FALSE;
+        }
+
+        flock($fp, LOCK_SH);
+
+        $data = '';
+        if (filesize($file) > 0)
+        {
+            $data =& fread($fp, filesize($file));
+        }
+
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        return $data;
+    }
+    /**
+    * Directory map
+    * 
+    * @param string $source_dir
+    * @param int $directory_depth
+    * @param boolean $hidden
+    * @return array
+    */
+    static function directory_map($source_dir, $directory_depth = 0, $hidden = FALSE)
+    {
+        if ($fp = @opendir($source_dir))
+        {
+            $filedata    = array();
+            $new_depth    = $directory_depth - 1;
+            $source_dir    = rtrim($source_dir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+
+            while (FALSE !== ($file = readdir($fp)))
+            {
+                // Remove '.', '..', and hidden files [optional]
+                if ( ! trim($file, '.') OR ($hidden == FALSE && $file[0] == '.'))
+                {
+                    continue;
+                }
+
+                if (($directory_depth < 1 OR $new_depth > 0) && @is_dir($source_dir.$file))
+                {
+                    $filedata[$file] = directory_map($source_dir.$file.DIRECTORY_SEPARATOR, $new_depth, $hidden);
+                }
+                else
+                {
+                    $filedata[] = $file;
+                }
+            }
+
+            closedir($fp);
+            return $filedata;
+        }
+
+        return FALSE;
+    }
+} 

@@ -1,0 +1,54 @@
+<?php
+
+namespace CensorCleaner\Checker;
+
+use \CensorCleaner\Loader;
+
+/**
+* @category CleanTalk
+* @package CensorCleaner\Checker
+* 
+*/
+
+Class Checker
+{
+    private $config;
+    private $counts;
+    private $url_get;
+    private $user;
+    private $checker_config;
+
+    /**
+    * Prepearing checker
+    * 
+    * @param \CensorCleaner\Config $config
+    * @param IntCheckerPrepear $check_prepear
+    * @param IntCookieBan $cookie_ban
+    * @param IntBanUser $ban_user
+    * @param IntGetContent $url_get
+    */
+    public function getPrepea(\CensorCleaner\Config $config, IntCheckerPrepear $check_prepear, \CensorCleaner\IntGetContent $url_get, IntBanUser $user, array $checker_config){
+        $this->config         = $config;
+        $this->counts         = $check_prepear;
+        $this->url_get        = $url_get;
+        $this->user           = $user;
+        $this->checker_config = $checker_config;
+    }
+    public function run(){
+        if($this->user->getUserStatus() === FALSE){
+            foreach($this->checker_config as $type => $chains){
+                $class = '\\CensorCleaner\\CheckQuility\\'.$type;
+                $handler[$type] = new $class();
+                foreach($chains as $class_name => $min){
+                    $class = '\\CensorCleaner\\CheckQuility\\'.$class_name;
+                    $handler[$type]->addHandler(new $class($this->config,$this->counts,$min));    
+                }
+            }
+            $handler[$type]->checkQuility($this->user->config[$this->config->config['user_lvl']]['wieght']);
+            foreach($this->user->config as $user_type){
+                
+
+            }    
+        }
+    }
+}
