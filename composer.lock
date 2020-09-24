@@ -1,10 +1,9 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "hash": "b1067e90fec163f6b3a4745338c681ce",
     "content-hash": "76acc1e14b3409bc41678ad9e41cc5f2",
     "packages": [
         {
@@ -54,20 +53,20 @@
                 "log",
                 "logging"
             ],
-            "time": "2012-04-23 16:27:40"
+            "time": "2012-04-23T16:27:40+00:00"
         },
         {
             "name": "usmanhalalit/pixie",
-            "version": "2.0.0",
+            "version": "2.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/usmanhalalit/pixie.git",
-                "reference": "5820ef4f62c7be697767fd84830b7ad6fc057375"
+                "reference": "873e70e63b6802634050d9fb3d38a9bc0c5d23fc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/usmanhalalit/pixie/zipball/5820ef4f62c7be697767fd84830b7ad6fc057375",
-                "reference": "5820ef4f62c7be697767fd84830b7ad6fc057375",
+                "url": "https://api.github.com/repos/usmanhalalit/pixie/zipball/873e70e63b6802634050d9fb3d38a9bc0c5d23fc",
+                "reference": "873e70e63b6802634050d9fb3d38a9bc0c5d23fc",
                 "shasum": ""
             },
             "require": {
@@ -110,7 +109,7 @@
                 "sql",
                 "sqlite"
             ],
-            "time": "2016-04-08 10:58:01"
+            "time": "2019-11-16T12:29:06+00:00"
         },
         {
             "name": "usmanhalalit/viocon",
@@ -157,7 +156,7 @@
                 "ioc",
                 "test"
             ],
-            "time": "2013-07-13 19:54:56"
+            "time": "2013-07-13T19:54:56+00:00"
         }
     ],
     "packages-dev": [],
@@ -167,5 +166,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }
